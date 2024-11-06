@@ -58,3 +58,21 @@ class TestGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient("test_org")
         self.assertEqual(client.has_license(repo, license_key), expected)
+
+    @patch('client.get_json')
+    def test_public_repos(self, mock_get_json):
+        """
+        Tests that GithubOrgClient.public_repos returns the correct value.
+        """
+        mock_get_json.return_value = [
+            {"name": "repo1"},
+            {"name": "repo2"},
+            {"name": "repo3"}
+        ]
+        with patch('client.GithubOrgClient._public_repos_url',
+                   new_callable=Mock) as mock_public_repos_url:
+            mock_public_repos_url.return_value = "test_url"
+            client = GithubOrgClient("test_org")
+            self.assertEqual(client.public_repos(), ["repo1", "repo2", "repo3"])
+            mock_public_repos_url.assert_called_once()
+        mock_get_json.assert_called_once()
